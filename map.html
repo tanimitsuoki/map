@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>map</title>
+    <link rel="stylesheet" href="css/map.css">
+
+</head>
+<body>
+
+<!-- MAP[START] -->
+<header>
+    <div class="gs">G's</div>
+    
+    <p class="ken">
+        <input type="text" id="from" value="東京文京区">
+        <button id="get">検索</button>
+    
+    </p>
+    
+
+    <div class="mainarea">
+
+        <p class="main_explanation">保存したい情報を入力下さい</p>
+  
+        <form action="#" class="inputarea">
+          <input type="text" name=hoge id="key" placeholder="タイトルを入力">
+          <input type="date" id="date" class="date1">
+          <textarea id="amount" placeholder="詳細を入力"></textarea>
+          <input type="text" id="basho" class="basho">
+        </form>
+  
+        <div class="savearea">
+          <button id="get" class="abtn" >新規登録</button>
+        </div>
+  
+      </div>
+
+</header>
+
+
+
+<div id="main">
+    <div id="myMap";></div>
+    <h1 id="h1"></h1>
+</div>
+<!-- MAP[END] -->
+
+<div class="listarea">
+    <p class="list_title">リスト</p>
+
+    <ul id="list">
+      <li>
+        <span></span>
+        <span>【タイトル】</span>
+        <span>【日付】</span>
+        <span>【詳細】</span>
+        <span>【場所】</span>
+        <span></span>
+      </li>
+      <!-- ここに追加データが挿入される -->
+    </ul>
+
+    <p class="list_explanation"></p>
+
+    <div class="action_box">
+      <button class="sakujyo btn">全削除</button>
+      <button class="delete btn">項目消去</button>
+    </div>
+  </div>
+
+  <!-- モーダル部分 -->
+  <div class="modal js-modal">
+    <div class="modal__bg js-modal-close"></div>
+    <div class="modal__content">
+        <p>本当に消去しますか？</p>
+        <div class="modal__btnarea">
+          <button class="js-modal-on btn">続ける</button>
+          <button class="js-modal-close btn">キャンセル</button>
+        </div>
+    </div>
+  </div>
+
+
+  <!-- JQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <!--** 以下Firebase **-->
+  <script src="https://www.gstatic.com/firebasejs/7.14.2/firebase.js"></script>
+
+<script src='https://www.bing.com/api/maps/mapcontrol?callback=GetMap&key=AttYboXw-jMFuYSVrx2cC9JjcQcHwt6eQBroV_QpLDMnSlf1BD3v87XRO3OolJie' async defer>
+</script>
+
+<script type="text/javascript">
+
+    </script>
+
+
+<script>
+    // firebase 記述
+    var firebaseConfig = {
+      apiKey: "AIzaSyCqVg_NyEEVBLd7pb7QDJDzrHQlPvzfBZs",
+      authDomain: "dev18-chat01-23024.firebaseapp.com",
+      databaseURL: "https://dev18-chat01-23024.firebaseio.com",
+      projectId: "dev18-chat01-23024",
+      storageBucket: "dev18-chat01-23024.appspot.com",
+      messagingSenderId: "258135251170",
+      appId: "1:258135251170:web:d750825abc7c95217526bb"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    //firebaseのデーターベース（保存させる場所）を使いますよ
+    const newPostRef = firebase.database().ref();
+    // firebase 記述終了
+
+
+
+
+    $(".abtn").on("click", function () {
+
+        const t3 = document.getElementById("key").value;
+
+        if (t3 == ''){
+            alert('タイトルが空です');
+                    //条件に一致する場合(空の場合)
+          return false;    //送信ボタン本来の動作をキャンセルします
+        }else{
+        newPostRef.push({
+        key: $("#key").val(), //名前
+        basho: $("#basho").val(),//検索場所
+        date: $("#date").val(),//日付
+        amount: $("#amount").val()//テキストエリア
+    })
+     // val()で値を取得する
+
+        const key = $("#key").val();
+        const date = $("#date").val();
+        const value = $("#amount").val();
+        const basho = $("#basho").val();
+
+        // html側で入力されたデータを取得して確認
+    
+        console.log(basho);
+        console.log(date);
+        console.log(key);
+        console.log(value);
+
+      $("#key").val("");
+      $("#date").val("");
+      $("#amount").val("");
+      $("#basho").val("");
+        }
+    
+});
+
+    newPostRef.on("child_added", function (data) {
+          let v = data.val(); //ここに保存されたデータが全て入ってくる
+         console.log(v); //vの変数に入っているオブジェクトを全てみる
+        const html = `
+      <li>
+        <span><input type="checkbox" class="listitem" value="${v.key}"></span>
+        <span class="list__key">${v.key}</span>
+        <span class="date__key">${v.date}</span>
+        <span class="list__value">${v.amount}</span>
+        <span class="basho__key">${v.basho}</span>
+      </li>`
+
+        // ここでデータをhtmlに埋め込む
+        $("#list").append(html);
+      
+    });
+
+   
+
+     // 全削除ボタンをクリックされたら次の処理をする
+     $(".sakujyo").on("click", function () {
+         //モーダル画面にして消去を確認
+      $('.js-modal').fadeIn();
+            //キャンセルをクリックした場合
+      $('.js-modal-close').on('click',function(){
+        $('.js-modal').fadeOut();
+        return false;
+      });
+      $(".js-modal-on").on("click",function(){
+       newPostRef.remove();
+       location.reload();
+    });
+   });
+
+   $(".delete").on("click", function () {
+         //モーダル画面にして消去を確認
+      $('.js-modal').fadeIn();
+            //キャンセルをクリックした場合
+      $('.js-modal-close').on('click',function(){
+        $('.js-modal').fadeOut();
+        return false;
+      });
+      $(".js-modal-on").on("click",function(){
+
+        //変数に配列を定義して、チェックしてあるkeyの内容（タイトル）を配列に格納する
+          var items=[];
+        $(".listitem:checked").each(function(){
+          items.push($(this).val());
+        })
+
+        console.log(items);
+
+         //配列にあるkeyの内容について、順番に情報を更新
+         for(let j = 0; j < items.length; j++) {
+          const delkey = items[j];
+ 
+     
+      };
+
+
+    });
+   });
+
+
+    /**
+     * BingMapsControllerを読み込んだらGetMap()を実行
+     * @constructor
+     */
+    let map;             //MapObject用
+    let searchManager;   //SearchObject用
+    function GetMap() {
+        //Map生成
+        map = new Microsoft.Maps.Map('#myMap', {
+            zoom: 15,
+            mapTypeId: Microsoft.Maps.MapTypeId.streetside
+
+           
+        });
+        //検索モジュール指定
+        Microsoft.Maps.loadModule('Microsoft.Maps.Search', function () {
+            //searchManagerインスタンス化（Geocode,ReverseGeocodeが使用可能になる）
+            searchManager = new Microsoft.Maps.Search.SearchManager(map);
+            //Geocode：住所から検索
+            geocodeQuery(document.getElementById("from").value);
+            
+
+
+        });
+    }
+
+    /**
+     * 検索ボタン[Click:Event]
+     */
+    document.getElementById("get").onclick = function(){
+        //4.Geocode:住所から検索
+        geocodeQuery(document.getElementById("from").value);
+       
+    };
+
+    /**
+     * 住所から緯度経度を取得
+     * @param query [住所文字列]
+     */
+    function geocodeQuery(query) {
+        if(searchManager) {
+            //住所から緯度経度を検索
+            searchManager.geocode({
+                where: query,       //検索文字列
+                callback: function (r) { //検索結果を"( r )" の変数で取得
+                    //最初の検索取得結果をMAPに表示
+                    if (r && r.results && r.results.length > 0) {
+                        //Pushpinを立てる
+                        const pin = new Microsoft.Maps.Pushpin(r.results[0].location);
+                        map.entities.push(pin);
+                        //map表示位置を再設定
+                        map.setView({ bounds: r.results[0].bestView});
+                        //取得た緯度経度をh1要素にJSON文字列にして表示
+                        console.log(r.results[0].location);
+                        document.getElementById("h1").innerText = JSON.stringify(r.results[0].location);
+                    }
+                },
+                errorCallback: function (e) {
+                    alert("見つかりません");
+                }
+            });
+        }
+    }
+
+    var $from = $('#from');
+   var $basho = $('#basho');
+    $from.on('keyup change',function(){
+	$basho.val($from.val());
+
+
+})
+
+
+
+</script>
+</body>
+</html>
